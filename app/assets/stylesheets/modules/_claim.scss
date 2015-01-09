@@ -13,7 +13,8 @@
 
 
 .Claim__firstrow,
-.Claim__secondrow {
+.Claim__secondrow,
+.Claim__thirdrow {
 	@extend %clarat_rounding;
 	@extend %roboto_bold;
 	display: inline-block;
@@ -34,4 +35,15 @@
 	padding: 7px 9px 6px;
 	font-size: 22px;
 	line-height: 1.3;
+}
+
+.Claim__thirdrow {
+	margin-top: 10px;
+	padding: 7px 9px 6px;
+	font-size: 18px;
+	line-height: 1.3;
+	float: right;
+	a {
+		color: white;
+	}
 }
