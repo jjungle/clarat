@@ -193,6 +193,11 @@ RailsAdmin.config do |config|
     field :contact_name
     field :email
     field :encounter
+    field :age_group, :enum do
+      enum_method do
+        :age_group_enum
+      end
+    end
     field :frequent_changes
     field :slug do
       read_only do

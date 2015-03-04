@@ -19,6 +19,13 @@ class Offer < ActiveRecord::Base
   has_many :hyperlinks, as: :linkable
   has_many :websites, through: :hyperlinks
 
+  # Serialize
+  serialize :age_group, Array
+  def age_group_enum
+    ['jung', 'mittel', 'alt']
+  end
+
+
   # Enumerization
   extend Enumerize
   enumerize :encounter, in: %w(fixed determinable independent)
