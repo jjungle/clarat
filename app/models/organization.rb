@@ -2,14 +2,21 @@ class Organization < ActiveRecord::Base
   has_paper_trail
 
   # Concerns
-  include Creator, Approvable
+  include Creator, Approvable, CustomValidatable
 
   # Associtations
   has_many :locations
-  has_many :organization_offers
-  has_many :offers, through: :organization_offers
   has_many :hyperlinks, as: :linkable
   has_many :websites, through: :hyperlinks
+  has_many :organization_offers
+  has_many :contact_people
+  has_many :offers, through: :organization_offers
+  has_many :child_connections, class_name: 'OrganizationConnection',
+                               foreign_key: 'parent_id'
+  has_many :children, through: :child_connections
+  has_many :parent_connections, class_name: 'OrganizationConnection',
+                                foreign_key: 'child_id'
+  has_many :parents, through: :parent_connections
 
   # Enumerization
   extend Enumerize
@@ -32,6 +39,8 @@ class Organization < ActiveRecord::Base
   validates :legal_form, presence: true
   validates :founded, length: { is: 4 }, allow_blank: true
   validates :comment, length: { maximum: 800 }
+  validates :slug, uniqueness: true
+
   # Custom Validations
   validates :approved, approved: true
 
@@ -56,5 +65,12 @@ class Organization < ActiveRecord::Base
       orga.completed = false
       orga.approved = false
     end
+  end
+
+  def gmaps_info
+    {
+      title: name,
+      address: location.address
+    }
   end
 end

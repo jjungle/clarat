@@ -14,14 +14,14 @@ module GmapsVariable
     def prepare_gmaps_variable object
       return unless object.location
       key = Geolocation.new(object.location)
-
-      if @markers[key.to_s]
-        @markers[key.to_s][:offer_ids] << object.id
+      key_s = key.to_s
+      if @markers[key_s]
+        @markers[key_s][:ids] << object.id
       else
-        @markers[key.to_s] = {
+        @markers[key_s] = {
           position: key.to_h,
-          offer_ids: [object.id],
-          url: offer_url(object)
+          ids: [object.id],
+          url: offer_url(object) # assumes offer, not used on organization
         }.merge object.gmaps_info
       end
     end

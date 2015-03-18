@@ -13,7 +13,6 @@ about supported directives.
 ###
 #
 # = require setup
-# = require analytics
 #
 # = require jquery
 # = require jquery_ujs
@@ -24,7 +23,9 @@ about supported directives.
 # = require_tree ./templates
 #
 # = require jquery.popupoverlay
+# = require jquery.query-object
 #
+# = require vendor/analytics
 # = require vendor/cookie_lib
 # = require vendor/inviewport
 # = require vendor/ios-orientationchange-fix
@@ -33,14 +34,16 @@ about supported directives.
 # = require algolia/algoliasearch.min
 # = require algolia/typeahead.jquery
 #
+# = require modules/ajax_replace
 # = require modules/geolocation
 # = require modules/query_autocomplete
 # = require modules/places_autocomplete
 # = require modules/mobilemenu
-# = require modules/sticky
+# = require modules/category_tree
 # = require modules/search_location
 # = require modules/more
+# = require modules/modal
 # = require modules/unavailable_location_overlay
-# = require modules/report_overlay
 # = require modules/flash
 # = require modules/safari_fixes
+# = require modules/category_tree

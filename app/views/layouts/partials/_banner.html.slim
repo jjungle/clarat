@@ -1,0 +1,8 @@
+.Banner
+  .Banner__text = t 'shared.banner.text'
+  a.Banner__link.beta_banner_open[href="#"] = t 'shared.banner.link'
+
+= modal_for 'beta_banner' do
+  p
+    = t 'shared.banner.beta_modal'
+    = link_to I18n.t('shared.banner.beta_modal_contact_link'), '/kontakt/new'

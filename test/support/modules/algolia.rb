@@ -9,14 +9,16 @@ module AlgoliaStubber
       "nbPages" : 0,
       "hitsPerPage" : 10,
       "processingTimeMS" : 1,
-      "facets" : {},
+      "facets" : {
+        "_tags": {}
+      },
       "query" : "",
       "params" : "query="
     }
   RESPONSE
 
   def self.enable_empty_response
-    WebMock.stub_request(:get, /.*\.algolia\.io\/1\/indexes\/[^\/]+/).to_return(
+    WebMock.stub_request(:get, /.*\.algolia\.(io|net)\/1\/indexes/).to_return(
       body: EMPTY_RESPONSE
     )
   end

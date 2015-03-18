@@ -2,12 +2,11 @@ require_relative '../test_helper'
 include Warden::Test::Helpers
 
 feature 'Search Form' do
-
   scenario 'Empty search works' do
     WebMock.enable!
     visit root_path
     find('.main-search__submit').click
-    page.must_have_content '0 Angebote'
+    page.must_have_content 'Keine Angebote'
     WebMock.disable!
   end
 
@@ -23,7 +22,7 @@ feature 'Search Form' do
     fill_in 'search_form_query', with: 'bazfuz'
     fill_in 'search_form_search_location', with: 'Foobar'
     find('.main-search__submit').click
-    page.must_have_content '1 Angebote'
+    page.must_have_content 'Ein Angebot'
 
     page.must_have_content I18n.t 'offers.index.unavailable_location_modal'
     WebMock.disable!
@@ -56,11 +55,22 @@ feature 'Search Form' do
 
     click_link 'chunky bacon'
     current_url.must_match(
-      /search_form\[categories\]=chunky\+bacon/
+      /search_form\[category\]=chunky\+bacon/
     )
-    find_link('chunky bacon')[:href].wont_match(
-      /search_form%5Bcategories%5D=chunky\+bacon/
-    )
+    # find_link('chunky bacon')[:href].wont_match(
+    #   /search_form%5Bcategory%5D=chunky\+bacon/
+    # )
+    WebMock.disable!
+  end
+
+  scenario 'Search with exact_location works' do
+    WebMock.enable!
+    visit offers_path search_form: {
+      query: nil, search_location: 'X', generated_geolocation: '0,0',
+      categories: '', exact_location: 't'
+    }
+
+    page.must_have_content 'Keine Angebote'
     WebMock.disable!
   end
 
@@ -93,5 +103,15 @@ feature 'Search Form' do
     page.wont_have_content(
       'Leider konnten wir den von dir eingegeben Standort nicht finden'
     )
+  end
+
+  scenario 'Navigating to category without a given location uses default' do
+    WebMock.enable!
+    visit root_path
+    fill_in 'search_form_search_location', with: ''
+
+    click_link 'main1'
+    page.must_have_content I18n.t 'offers.index.location_fallback'
+    WebMock.disable!
   end
 end

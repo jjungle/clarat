@@ -23,6 +23,13 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
 
+  config.included_models = %w(
+    Organization Website Location FederalState Offer Opening Category Filter
+    LanguageFilter EncounterFilter AgeFilter AudienceFilter User Contact
+    Subscription UpdateRequest Hyperlink OrganizationOffer
+    OrganizationConnection SearchLocation ContactPerson
+  )
+
   config.actions do
     dashboard                     # mandatory
     index                         # mandatory
@@ -44,7 +51,10 @@ RailsAdmin.config do |config|
     statistics do
       only ['Organization', 'Offer', 'Location']
     end
-    nested_set do
+    # nested_set do
+    #   only ['Category']
+    # end
+    nestable do
       only ['Category']
     end
 
@@ -57,7 +67,7 @@ RailsAdmin.config do |config|
     list do
       field :offers_count
       field :name
-      field :legal_form
+      field :renewed
       field :completed
       field :approved
       field :creator
@@ -78,6 +88,8 @@ RailsAdmin.config do |config|
     field :charitable
     field :founded
     field :umbrella
+    field :parents
+    field :children
     field :slug do
       read_only do
         bindings[:object].new_record?
@@ -86,6 +98,7 @@ RailsAdmin.config do |config|
 
     field :websites
     field :completed
+    field :renewed
     field :approved
 
     show do
@@ -118,7 +131,6 @@ RailsAdmin.config do |config|
       field :organization
       field :zip
       field :federal_state
-      field :completed
       field :display_name
     end
     weight(-2)
@@ -129,10 +141,6 @@ RailsAdmin.config do |config|
     field :zip
     field :city
     field :federal_state
-    field :telephone
-    field :second_telephone
-    field :fax
-    field :email
     field :hq
     field :latitude do
       read_only true
@@ -140,8 +148,6 @@ RailsAdmin.config do |config|
     field :longitude do
       read_only true
     end
-    field :completed
-
     show do
       field :offers
       field :display_name
@@ -164,69 +170,75 @@ RailsAdmin.config do |config|
     list do
       field :name
       field :location
-      field :frequent_changes
+      field :renewed
       field :completed
       field :approved
       field :creator
+      field :expires_at
       field :organizations
       field :created_by
     end
     weight(-1)
-
-    edit do
-      field :name do
-        css_class 'js-category-suggestions__trigger'
-      end
-      field :description, :wysihtml5 do
-        css_class 'js-count-character'
-        config_options toolbar: { fa: true,
-                                  image: false,
-                                  emphasis: true,
-                                  blockquote: false,
-                                  "font-styles" => false }
-      end
-      field :comment do
-        css_class 'js-count-character'
-      end
-      field :next_steps, :wysihtml5 do
-        css_class 'js-count-character'
-      end
-      field :legal_information
-      field :telephone
-      field :second_telephone
-      field :fax
-      field :contact_name
-      field :email
-      field :encounter
-      field :frequent_changes
-      field :slug do
-        read_only do
-          bindings[:object].new_record?
-        end
-      end
-      field :location
-      field :organizations do
-        help do
-          'Required before approval. Only approved organizations.'
-        end
-      end
-      field :categories do
-        css_class 'js-category-suggestions'
-      end
-      field :languages
-      field :openings
-      field :opening_specification do
-        help do
-          'Bitte einigt euch auf eine einheitliche Ausdrucksweise. Wie etwa
-          "jeden 1. Montag im Monat" oder "jeden 2. Freitag". Sagt mir
-          (Konstantin) auch gern bescheid, wenn ihr ein einheitliches Format
-          gefunden habt, mit dem alle Fälle abgedeckt werden können.'
-        end
-      end
-      field :websites
-      field :completed
-      field :approved
+    field :name do
+      css_class 'js-category-suggestions__trigger'
     end
+    field :description, :wysihtml5 do
+      css_class 'js-count-character'
+      config_options toolbar: { fa: true,
+                                image: false,
+                                emphasis: true,
+                                blockquote: false,
+                                "font-styles" => false }
+    end
+    field :comment do
+      css_class 'js-count-character'
+    end
+    field :next_steps do
+      css_class 'js-count-character'
+    end
+    field :legal_information
+    field :contact_people
+    field :fax
+    field :encounter
+    field :slug do
+      read_only do
+        bindings[:object].new_record?
+      end
+    end
+    field :location
+    field :organizations do
+      help do
+        'Required before approval. Only approved organizations.'
+      end
+    end
+    field :categories do
+      css_class 'js-category-suggestions'
+    end
+    field :language_filters
+    field :audience_filters
+    field :age_filters do
+      help { 'Required before approval.' }
+    end
+    field :encounter_filters do
+      help { 'Required before approval.' }
+    end
+    field :openings
+    field :opening_specification do
+      help do
+        'Bitte einigt euch auf eine einheitliche Ausdrucksweise. Wie etwa
+        "jeden 1. Montag im Monat" oder "jeden 2. Freitag". Sagt mir
+        (Konstantin) auch gern bescheid, wenn ihr ein einheitliches Format
+        gefunden habt, mit dem alle Fälle abgedeckt werden können.'
+      end
+    end
+    field :websites
+    field :keywords do
+      inverse_of :offers
+    end
+    field :expires_at
+    field :completed
+    field :approved
+    field :renewed
 
     show do
       field :created_by
@@ -239,6 +251,19 @@ RailsAdmin.config do |config|
     clone_config do
       custom_method :partial_dup
     end
+  end
+
+  config.model 'ContactPerson' do
+    object_label_method :display_name
+
+    field :name
+    field :area_code_1
+    field :local_number_1
+    field :area_code_2
+    field :local_number_2
+    field :email
+    field :organization
+    field :offers
   end
 
   config.model 'Opening' do
@@ -274,7 +299,6 @@ RailsAdmin.config do |config|
 
   config.model 'Category' do
     field :name
-    field :synonyms
     field :parent
 
     object_label_method :name_with_optional_asterisk
@@ -288,18 +312,30 @@ RailsAdmin.config do |config|
       field :icon
     end
 
-    nested_set(max_depth: 5)
+    # nested_set(max_depth: 5)
+    nestable_tree(max_depth: 5)
   end
 
-  config.model 'Language' do
+  config.model 'Filter' do
     weight 1
     list do
-      sort_by :name
       field :id
       field :name
-      field :code
+      field :identifier
       field :offers
     end
+  end
+  config.model 'LanguageFilter' do
+    parent Filter
+  end
+  config.model 'EncounterFilter' do
+    parent Filter
+  end
+  config.model 'AgeFilter' do
+    parent Filter
+  end
+  config.model 'AudienceFilter' do
+    parent Filter
   end
 
   config.model 'User' do
@@ -332,6 +368,10 @@ RailsAdmin.config do |config|
     end
   end
 
+  config.model 'Keyword' do
+    weight 1
+  end
+
   config.model 'Contact' do
     weight 2
   end
@@ -349,6 +389,14 @@ RailsAdmin.config do |config|
   end
 
   config.model 'OrganizationOffer' do
+    weight 3
+  end
+
+  config.model 'ContactPersonOffer' do
+    weight 3
+  end
+
+  config.model 'OrganizationConnection' do
     weight 3
   end
 

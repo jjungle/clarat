@@ -58,6 +58,10 @@
   #new_search_form {
     width: 435px;
 
+    .tt-dropdown-menu {
+      margin-right: 0;
+    }
+
     #search_form_query,
     #search_form_search_location {
       max-width: 165px;
@@ -111,7 +115,6 @@
 
   .section-wrapper-major,
   .section-wrapper-minor,
-  .content-main,
   .aside-standard { // clearing floats, one column layout
     display: block;
     float: none;
@@ -148,6 +151,17 @@
 
   .Listing-results {
     min-height: 0;
+  }
+
+
+  #new_search_form {
+    .template--pages-home & {
+      .twitter-typeahead {
+        span.tt-dropdown-menu {
+          right: 0 !important; // overriding JS
+        }
+      }
+    }
   }
 
 

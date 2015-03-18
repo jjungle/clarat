@@ -3,28 +3,25 @@ require 'ffaker'
 FactoryGirl.define do
   factory :offer do
     # required fields
-    name { Faker::Lorem.words(rand(3..5)).join(' ').titleize }
-    description { Faker::Lorem.paragraph(rand(4..6))[0..399] }
-    next_steps { Faker::Lorem.paragraph(rand(1..3))[0..399] }
+    name { FFaker::Lorem.words(rand(3..5)).join(' ').titleize }
+    description { FFaker::Lorem.paragraph(rand(4..6))[0..399] }
+    next_steps { FFaker::Lorem.paragraph(rand(1..3))[0..399] }
     encounter do
       Offer.enumerized_attributes.attributes['encounter'].values.sample
     end
-    frequent_changes { Faker::Boolean.maybe }
     completed false
     approved false
     approved_at nil
 
     # optional fields
-    comment { maybe Faker::Lorem.paragraph(rand(4..6))[0..799] }
-    telephone { maybe Faker.numerify('#' * rand(7..11)) }
-    fax { (maybe(true) && telephone) ? Faker.numerify('#' * rand(7..11)) : nil }
-    contact_name { maybe Faker::NameDE.name }
-    email { maybe Faker::Internet.email }
+    comment { maybe FFaker::Lorem.paragraph(rand(4..6))[0..799] }
+    fax { maybe FFaker.numerify('#' * rand(7..11)) }
 
     # associations
 
-    ignore do
+    transient do
       organization_count 1
+      contact_person_count 1
       website_count { rand(0..3) }
       category_count { rand(1..3) }
       category nil # used to get a specific category, instead of category_count
@@ -48,6 +45,13 @@ FactoryGirl.define do
         offer.update_column :location_id, location.id if location
       end
 
+      # Contact People
+      evaluator.organization_count.times do
+        offer.contact_people << FactoryGirl.create(
+          :contact_person, organization: organization
+        )
+      end
+
       # ...
       create_list :hyperlink, evaluator.website_count, linkable: offer
       if evaluator.category
@@ -55,11 +59,7 @@ FactoryGirl.define do
       else
         evaluator.category_count.times do
           offer.categories << (
-            if Category.count != 0 && rand(2) == 0
-              Category.select(:id).all.sample
-            else
-              FactoryGirl.create(:category)
-            end
+            Category.select(:id).all.sample
           )
         end
       end
@@ -73,8 +73,9 @@ FactoryGirl.define do
         )
       end
       evaluator.language_count.times do
-        offer.languages << (
-          Language.select(:id).all.sample || FactoryGirl.create(:language)
+        offer.language_filters << (
+          LanguageFilter.select(:id).all.sample ||
+            FactoryGirl.create(:language_filter)
         )
       end
     end

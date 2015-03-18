@@ -5,13 +5,28 @@ class Offer < ActiveRecord::Base
   include Validations, Search, Statistics
 
   # Concerns
-  include Creator, Approvable
+  include Creator, Approvable, CustomValidatable
 
   # Associtations
   belongs_to :location, inverse_of: :offers
   has_and_belongs_to_many :categories
-  has_and_belongs_to_many :languages
+  has_and_belongs_to_many :filters
+  has_and_belongs_to_many :language_filters,
+                          association_foreign_key: 'filter_id',
+                          join_table: 'filters_offers'
+  has_and_belongs_to_many :audience_filters,
+                          association_foreign_key: 'filter_id',
+                          join_table: 'filters_offers'
+  has_and_belongs_to_many :age_filters,
+                          association_foreign_key: 'filter_id',
+                          join_table: 'filters_offers'
+  has_and_belongs_to_many :encounter_filters,
+                          association_foreign_key: 'filter_id',
+                          join_table: 'filters_offers'
   has_and_belongs_to_many :openings
+  has_and_belongs_to_many :keywords, inverse_of: :offers
+  has_many :contact_person_offers, inverse_of: :offer
+  has_many :contact_people, through: :contact_person_offers
   has_many :organization_offers
   has_many :organizations, through: :organization_offers
   # Attention: former has_one :organization, through: :locations
@@ -34,37 +49,28 @@ class Offer < ActiveRecord::Base
     ]
   end
 
+  # Scopes
+  scope :approved, -> { where(approved: true) }
+
   # Methods
 
   delegate :name, :street, :addition, :city, :zip, :address,
            to: :location, prefix: true, allow_nil: true
 
-  # Offer's encounter modifier for indexing
-  def encounter_value
-    case encounter
-    when 'independent' then 0
-    when 'determinable', 'fixed' then 1
-    end
-  end
-
   def partial_dup
     self.dup.tap do |offer|
       offer.name = nil
-      offer.telephone = nil
-      offer.second_telephone = nil
       offer.fax = nil
-      offer.contact_name = nil
-      offer.email = nil
       offer.openings = self.openings
       offer.completed = false
       offer.approved = false
       offer.categories = self.categories
+      offer.contact_people = []
     end
   end
 
   def contact_details?
-    !contact_name.blank? || !telephone.blank? || !fax.blank? ||
-      !email.blank? || !websites.blank?
+    !fax.blank? || websites.any? || contact_people.any?
   end
 
   def social_media_websites?
