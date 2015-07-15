@@ -31,6 +31,13 @@ class Offer
         fail_validation :area, 'needs_area_when_remote' if !personal? && !area
       end
 
+      def validate_organizations
+        if organizations.where(approved: false).count > 0
+          fail_validation :organizations, 'only_approved_organizations',
+                          list: organizations.approved.pluck(:name).join(', ')
+        end
+      end
+
       private
 
       def validate_associated_fields
